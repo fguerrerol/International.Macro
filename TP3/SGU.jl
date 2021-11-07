@@ -251,9 +251,10 @@ function iter_simul!(tt, path, itp_gc, itp_ga, itp_w, itp_Y, itp_pN, At, zt, sw:
 	pC = price_index(pN, sw)
 
 	C = itp_gc(At, At, zt)
+	η,ϖN, ϖT= (sw.pars[sym] for sym in (:η, :ϖN, :ϖT))
 
-	cT = C * sw.ϖT * (pC)^sw.η
-	cN = C * sw.ϖN * (pC/pN)^sw.η
+	cT = C * ϖT * (pC)^η
+	cN = C * ϖN * (pC/pN)^η
 
 	CA = Y - pC * C
 
