@@ -9,7 +9,7 @@ comp_eqm!(A)
 
 p3_1a = plot(contour(x =A.agrid,
                      y =A.zgrid,
-                     Z = A.Y,
+                     z = A.Y,
                      colorscale="inferno",
                      contours_start = 0, 
                      contours_size = 0.05),
@@ -25,7 +25,7 @@ comp_eqm!(B)
 
 p3_1b = plot(contour(x =B.agrid,
                      y =B.zgrid,
-                     Z = B.Y,
+                     z = B.Y,
                      colorscale="inferno",
                      contours_start = 0, 
                      contours_size = 0.05),
@@ -35,9 +35,9 @@ p3_1b = plot(contour(x =B.agrid,
 
 savefig(p3_1b, "ps3-p1_1B.png")
 #### Para simular utilizo la funcion simul y le hago 200 periodos de simulacion
-path_a = simul(A, 250)
+path_a = simul(A,T=  250)
 
-path_b = simul(B, 250)
+path_b = simul(B,T = 250)
 
 #### Leugo de simular hallo la volatilidad relativa
 #### usando la desviaciṕn estándar tanto de el comsumo y 
@@ -74,3 +74,9 @@ p1= plot([histogram(x =path_a[:A], opacity=0.75)], Layout(title="Distribución d
 
 
 p2= plot([histogram(x =path_b[:A], opacity=0.75)], Layout(title="Distribución de la deuda caso default"))
+
+
+
+
+savefig(p1, "Distrib_ergo.png")
+savefig(p2, "Dsitrib_ergoB.png")
