@@ -127,7 +127,6 @@ end
 
 
 function flinks(adj)
-    #print(adj)
     links = 0;
     longitud  =size(adj)[1]
     for i =1:longitud
