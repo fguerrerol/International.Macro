@@ -1,5 +1,6 @@
 using Makie
-using PlotlyJS
+using Optim, Interpolations, Printf, LinearAlgebra, PlotlyJS, ColorSchemes, Distributions
+using QuantEcon: tauchen
 
 xs = LinRange(-1, 1, 100)
 ys = LinRange(-1, 1, 100)

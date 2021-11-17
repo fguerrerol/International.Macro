@@ -209,7 +209,7 @@ end
 
 # Demanda de trabajo
 
-  function labor_demand(zv, cT, w, sw::SOE)
+  	function labor_demand(zv, cT, w, sw::SOE)
 	α, ϖN, ϖT, η = (sw.pars[sym] for sym in (:α, :ϖN, :ϖT, :η))
 	
 	# Demanda de trabajo en el sector no transable
@@ -412,3 +412,14 @@ end
 print(" ✓\n")
 print("Constructor sw = SOEwr(; β = 0.97, γ = 2, r = 0.02, ϖN = 0.55, η = 1/0.83-1, α = 0.67, wbar = 0.8, ρz = 0.945, σz = 0.025, Na = 40, Nz = 21, amin = -0.5, amax = 10)\n")
 print("Loop: comp_eqm!(sw; tol = 1e-3, maxiter = 2000) \n")
+
+
+
+using JLD2
+
+A = load_object("SOE_cc.jdl2")
+
+
+
+
+plot(contour(x=A.ξgrid,y=A.zgrid,z=A.Y))

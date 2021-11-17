@@ -6,7 +6,7 @@ end
 struct Default <: Deuda
 	pars::Dict{Symbol, Float64}
 
-	bgrid::Vector{Float64}
+	jhbgrid::Vector{Float64}
 	ygrid::Vector{Float64}
 	Py::Matrix{Float64}
 
