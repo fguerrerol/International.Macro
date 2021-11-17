@@ -208,7 +208,8 @@ function vfi!(sw::SOE; tol=1e-3, maxiter = 2000)
 end
 
 # Demanda de trabajo
-function labor_demand(zv, cT, w, sw::SOE)
+
+  function labor_demand(zv, cT, w, sw::SOE)
 	α, ϖN, ϖT, η = (sw.pars[sym] for sym in (:α, :ϖN, :ϖT, :η))
 	
 	# Demanda de trabajo en el sector no transable
@@ -391,7 +392,7 @@ function iter_simul!(tt, path, itp_gc, itp_ga, itp_w, itp_Y, itp_pN, At, zt, sw:
 end
 
 # Simulador
-function simul(sw::SOE_wr; T = 100)
+function simul(sw::SOE; T = 100)
 	path = Dict(key => zeros(T) for key in [:w, :Y, :CA, :C, :pN, :A, :z])
 	itp_gc = interpolate((sw.agrid, sw.agrid, sw.zgrid), sw.gc, Gridded(Linear()))
     itp_ga = interpolate((sw.agrid, sw.agrid, sw.zgrid), sw.ga, Gridded(Linear()))
