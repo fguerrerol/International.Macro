@@ -46,14 +46,15 @@ function Decission(adj,U,Restricted,p,r,z,N,beta,cap_t,links_0)
     U_noised = zeros(1,length(U));
     U_noised .= scramble(U);
 
-
-    sel =  rand(1:N,1,trunc(Int64,floor(N*cap_t)));
+    sel = collect(1:N)
+    #shuffle!(sel)
+    #sel = sel[1:trunc(Int64,cap_t*N)]
     adj_temp = zeros(N,N);
     adj_temp .= adj;
     links_no_corta = flinks(adj);
     contagios_no_corta = (sum(U.*-(Restricted .-1)))*(1+p*z-r);
     Loss_no_corta = Loss(links_0, links_no_corta, beta, contagios_no_corta);
-    for i = 1:length(sel)
+    Threads.@threads  for i = 1:length(sel)
         if Restricted[sel[i]] != 1
             if U_noised[sel[i]] != 0
                 adj_temp[sel[i],:].=0;
@@ -80,8 +81,8 @@ end
 
 
 
-function  sis_net_limit(N ::Int64, z::Number, nsteps::Int64, p0, r0, beta_i,test_cap)::Matrix{Float64}
-
+function  sis_net_limit(N ::Int64, z::Number, nsteps::Int64, p0, r0, beta_i,test_cap,n_i)::Matrix{Float64}
+    Random.seed!(n_i)
     beta = beta_i;
 
     
@@ -207,7 +208,8 @@ end
 function infect_async(adj,U,Restricted,flag_0,N,p,r,z,beta,cap_t,links_0,adj_0)
     #global adj,Restricted
     
-    sel =  rand(1:N,1,N);
+    sele =  rand(1:N,1,N);
+    #shuffle!(sele);
     
     if flag_0 
         adj,Restricted = Reconnect(adj,U,Restricted,adj_0);
@@ -215,8 +217,8 @@ function infect_async(adj,U,Restricted,flag_0,N,p,r,z,beta,cap_t,links_0,adj_0)
         adj,Restricted =recollect(adj,Restricted,result,trunc(Int64,N/10),U);    
     end
  
-    for i = 1:length(sel)
-       x_0   = sel[i];
+    for i = 1:length(sele)
+       x_0   = sele[i];
        
        if U[x_0] == 0     
            nei = findall(x->x==1,adj[x_0,:]);    

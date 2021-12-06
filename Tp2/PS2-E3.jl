@@ -92,6 +92,37 @@ c.
 PS2_p21 =   plot(contour(x=c.kgrid,y=c.ygrid,z= c.gc,colorscale="inferno"),
 Layout(title="Consumo dado nivel de capital y estado de la economia", yaxis_title="Estado de la economía",xaxis_title="Nivel de capital"))
 
+p1 = plot([scatter(x = eachindex(Eco[:,1,2]),y = Eco[:,jy,2],
+    name= "Capacidad de testeo = $(file["Cap_test"][jy])") for jy in eachindex(file["Cap_test"])],
+    Layout(title ="Proporcion de contagiados dado un  Beta = 0.5 y distintos niveles de testeo", 
+    yaxis_title ="Proporcion de contagiados",
+    xaxis_title ="Periodos"))
+savefig(p1,"RABeta05.png")
+
+
+
+p1 = plot([scatter(x = eachindex(file2["Contagios"][:,1,2]),y = file2["Contagios"][:,8,jy],
+    name= "Capacidad de testeo = $(file["Betas"][jy])") for jy in eachindex(file2["Betas"])],
+    Layout(title ="Proporcion de contagiados dado un  Beta = 0.5 y distintos niveles de testeo", 
+    yaxis_title ="Proporcion de contagiados",
+    xaxis_title ="Periodos"))
+savefig(p1,"RABeta05.png")
+
+
+    plot([scatter(x = eachindex(Eco[:,1,1]),y = Eco[:,jy,1],
+    name= "Capacidad de testeo = $(file3["Cap_test"][jy])") for jy in eachindex(file3["Cap_test"])],
+    Layout(title ="Proporcion de contagiados dado un  Beta = 0 y distintos niveles de testeo", 
+    yaxis_title ="Proporcion de contagiados",
+    xaxis_title ="Periodos"))
+
+
+    plot([scatter(x = eachindex(Eco[:,1,1]),y = Eco[:,jy,3],
+    name= "Capacidad de testeo = $(file3["Cap_test"][jy])") for jy in eachindex(file3["Cap_test"])],
+    Layout(title ="Proporcion de contagiados dado un  $β = 0 y distintos niveles de testeo", 
+    yaxis_title ="Proporcion de contagiados",
+    xaxis_title ="Periodos"))
+
+
 
 PS2_p2 = plot([scatter(x = c.kgrid, y = c.gc[:,jy],name= "y = $(c.ygrid[jy])") for jy in eachindex(c.ygrid)])
 savefig(PS2_p21, "Diferentes niveles de ingreso.png")

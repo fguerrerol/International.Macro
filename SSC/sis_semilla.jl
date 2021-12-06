@@ -1,7 +1,7 @@
 include("Funciones.jl")
 print("Inicio de programa")
 using Optim, Statistics,Interpolations, Printf,
-      LinearAlgebra, PlotlyJS, ColorSchemes, Distributions
+      LinearAlgebra, PlotlyJS, ColorSchemes, Distributions,Random
 using MAT
 N      = 300;
 z      = 5.7;
@@ -9,14 +9,14 @@ r      = 0.6;
 nsteps = 10000;
 nave   =10;
 
+
 #resultado = zeros(nsteps,5);
 p = [0.7];
 #p = collect(0.3:0.1:0.7);
 #p = 0.5;
-betas = [0];
-#betas = collect(0:0.2:1);
+betas = [0 0.1 0.2 0.25 0.26 0.27 0.28 0.29 0.31 0.32 0.33 0.34 0.35 0.4 0.5 0.6 0.7 0.8 0.9 1];#betas = collect(0:0.2:1);
 #betas = [0,0.5,1]
-test_cap = 1.0
+test_cap = [1.0]
 #test_cap = [0.5];
 #test_cap =0.05:0.05:1;
 #test_cap= collect(0.2:0.2:1);
@@ -49,12 +49,13 @@ for c = 1:length(p)
   for k = 1:length(betas)
    
     beta_i = betas[k];
+    print(beta_i)
     for j = 1:length(test_cap)  
        
      
-      Threads.@threads for i =1:nave
+      for i =1:nave
           #print("Iteracion   = $(i)")
-          resultado = sis_net_limit(N, z, nsteps, prob, r, beta_i,test_cap[j]);
+          resultado = sis_net_limit(N, z, nsteps, prob, r, beta_i,test_cap[j],i);
           
           suma_economia[:,i] = resultado[:,5];
           suma_contagios[:,i] = resultado[:,2];
@@ -81,7 +82,7 @@ A =econ_prob;
 B =contagios_prob;
 C = restringidos_prob;
 
-matwrite("Results_8.mat", Dict(
+matwrite("Results_beta.mat", Dict(
                "Economia" => econ_prob,
                "Contagios" =>contagios_prob ,
                "Restrictos"=> restringidos_prob,
