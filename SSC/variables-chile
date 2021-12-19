@@ -15,7 +15,6 @@ var gY_obs // _observed GDP growth
     u // unemployment gap
     UBar // Natural unemployment level
     gUBar // Natural unemployment growth
-    ppi_bar // Inflation trend value
 
 ;
 
@@ -30,14 +29,13 @@ varexo eps_YBar // shock potential gdp level
        eps_u    // shock to unemployment gap
        eps_UBar // shock to natural unemployment level
        eps_gUBar// shock to natural unemployment growth
-       eps_ppi_bar // shcok to inflation trend
 ;
 // ==================================================
 // PARAMETERS
 // ==================================================
 
 parameters THETA Gss PHI SIG_eps_YBar SIG_eps_G SIG_eps_y // Related to output
-           BETTA LAMBDA KAPPA GAMMA SIG_eps_ppi ppiss SIG_eps_ppi_bar phi_ppi_bar// Related to inflation 
+           BETTA LAMBDA KAPPA GAMMA SIG_eps_ppi ppiss// Related to inflation 
            TAU_5 SIG_eps_tcr TCR_ss// Related to TCR TCR_ss
            TAU_1 TAU_2 TAU_3 TAU_4 Uss SIG_eps_UBar SIG_eps_gUBar SIG_eps_u //Related to unemployment
 ;
@@ -60,9 +58,6 @@ KAPPA=0.044;
 GAMMA=0.017; 
 SIG_eps_ppi=0.01;  
 ppiss=3;
-phi_ppi_bar = 0.1;
-SIG_eps_ppi_bar = 0.01;
-
 
 // Related to TCR           
 TAU_5=0.645 ;
@@ -114,7 +109,7 @@ ppi=LAMBDA/(1+BETTA*LAMBDA)*ppi(-1) + BETTA/(1+BETTA*LAMBDA)*ppi(+1) + KAPPA*y +
 // Ecuacion 6
 // Inflacion observada
 
-ppi_obs = ppi + ppiss/4 + ppi_bar;
+ppi_obs = ppi + ppiss/4;
 
 // Ecuacion 7
 // Tipo de cambio real
@@ -138,18 +133,12 @@ u = -TAU_1*y + TAU_2*u(-1) + SIG_eps_u*eps_u;
 // Nivel de desempleo potencial
 
 
-
 UBar = TAU_4*Uss + (1-TAU_4)*UBar(-1) + gUBar + SIG_eps_UBar*eps_UBar; // Natural unemployment level
 
 //Ecuacion 12
 // Crecimiento del desempleo potencial
 
 gUBar = (1-TAU_3)*gUBar(-1) + SIG_eps_gUBar*eps_gUBar ;   // Natural unemployment growth
-
-// Ecuacion 13 
-
-ppi_bar = phi_ppi_bar*ppi_bar(-1) + SIG_eps_ppi_bar*eps_ppi_bar;
-
 
 end;
 
@@ -210,10 +199,6 @@ u=0;
 // Ecuacion 12 Crecimiento del desempleo potneical
 gUBar = 0;
 
-
-// Ecuacion 13
-ppi_bar = 0;
-
 end;
 
 steady;
@@ -232,7 +217,6 @@ var eps_tcr =1;
 var eps_u =1;
 var eps_UBar =1;
 var eps_gUBar =1;
-var eps_ppi_bar =1;
 end;
 
 
@@ -282,6 +266,66 @@ Uss           ,  ,  ,  , normal_pdf, 7.7 , 3.6 ,  ,   ;
 SIG_eps_u     ,  , 0,  , normal_pdf, 0.1 , 0.2 ,  ,  ;
 SIG_eps_UBar  ,  , 0,  , normal_pdf, 0.1 , 0.2 ,  ,  ;
 SIG_eps_gUBar ,  , 0,  , normal_pdf, 0.1 , 0.2 ,  ,  ;
-SIG_eps_ppi_bar , , 0, , normal_pdf, 0.5 ,   1,   ,  ;
-phi_ppi_bar   , ,  0,  1, uniform_pdf, 0.5, sqrt(1/12) ,  ,  ; 
+
 end;	
+
+// Option to dock all graph produced by Dynare in the same window
+set(0,'DefaultFigureWindowStyle' , 'docked')
+
+
+		
+// ==================================================
+// BAYESIAN ESTIMATION: Maximizing the Posterior, sample 2001.Q1-2019.Q2.
+// ==================================================
+estimation(datafile = Data_TP3, xls_sheet = Chile, xls_range = B1:AA2000, mode_compute = 5, plot_priors = 1, mode_check, mh_replic = 0, mh_nblocks = 0);
+
+shock_decomposition(parameter_set=posterior_mode,nograph);
+
+global initial_date_graph;
+initial_date_graph='2003Q1';
+plot_shock_decomposition(steadystate, type = qoq) ppi_obs gY_obs gYBar;
+
+stoch_simul(periods = 0, irf = 20, order = 1, nograph); 
+
+save MVF_gap.mat oo_ M_ options_;
+
+
+/*
+// ==================================================
+// Reading previously estimated mode; computing smoother; ploting historical decomposition; computing moments and irf at the posterior model
+// ==================================================
+estimation(datafile = Datos, xls_sheet = data, xls_range = B1:AA2000, first_obs = 2, nobs = 68, mode_compute = 0, mode_file = MVF_gap_mode, plot_priors = 0, mh_replic = 0,  mh_nblocks = 0, smoother, smoothed_state_uncertainty, nograph);
+
+shock_decomposition(parameter_set=posterior_mode,nograph);
+
+global initial_date_graph;
+initial_date_graph='2003Q1';
+plot_shock_decomposition(steadystate, type = qoq) ppi_obs gY_obs gYBar;
+
+stoch_simul(periods = 0, irf = 20, order = 1, nograph); 
+
+save MVF_gap.mat oo_ M_ options_;
+
+
+
+// ==================================================
+// BAYESIAN ESTIMATION: Running M-H. mh_jscale already tunned in
+   mode_compute = 0, mode_file = MVF_gap_mode,  mh_replic = 10000, mh_nblocks = 1, mh_jscale = 0.32);
+
+// ==================================================
+// CHAINS & RECURSIVE MEANS
+// ==================================================
+model_name  = 'MVF_gap';    // name of the mod-file
+blocks_mh   = 1;        // blocks that you want to read (it can be a vector if you have more than one block)
+nrows       = 3;        // number of rows per figure
+ncols       = 3;        // number of columns per figure
+plots_for_dynare_chains(model_name,blocks_mh,nrows,ncols,oo_);
+
+// ==================================================
+// Reading Previosly generated MH, Save Bayesian IRF
+// ==================================================
+estimation(datafile = Datos, xls_sheet = data, xls_range = B1:AA2000, first_obs = 5, nobs = 74, mode_compute = 0, mode_file = MVF_gap_mode, plot_priors = 0, diffuse_filter, mh_replic = 0, mh_nblocks = 1, load_mh_file, load_results_after_load_mh, bayesian_irf, posterior_nograph);
+stoch_simul(periods = 0, irf = 20, order = 1, nograph); 
+save MVF_gap_mhresults.mat oo_ M_ options_;
+
+*/
