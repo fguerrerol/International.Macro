@@ -1,0 +1,287 @@
+close all;
+
+// ==================================================
+// VARIABLES, ENDOGENOUS
+// ==================================================
+var gY_obs // _observed GDP growth
+    gYBar // growth of potential GDP level
+    G // Potential growth
+    y // output gap
+    ppi // inflation
+    ppi_obs // _observed inflation
+    tcr // real exchange rate
+    tcr_obs // _observed tcr
+    U_obs // _observed unemployment
+    u // unemployment gap
+    UBar // Natural unemployment level
+    gUBar // Natural unemployment growth
+    ppi_bar // Inflation trend value
+
+;
+
+// ==================================================
+// VARIABLES, EXOGENOUS
+// ==================================================
+varexo eps_YBar // shock potential gdp level
+       eps_G    // shock potential gdp growth
+       eps_y    // shock to output gap
+       eps_ppi  // shock to inflation
+       eps_tcr  // shock to tcr
+       eps_u    // shock to unemployment gap
+       eps_UBar // shock to natural unemployment level
+       eps_gUBar// shock to natural unemployment growth
+       eps_ppi_bar // shcok to inflation trend
+;
+// ==================================================
+// PARAMETERS
+// ==================================================
+
+parameters THETA Gss PHI SIG_eps_YBar SIG_eps_G SIG_eps_y // Related to output
+           BETTA LAMBDA KAPPA GAMMA SIG_eps_ppi ppiss SIG_eps_ppi_bar phi_ppi_bar// Related to inflation 
+           TAU_5 SIG_eps_tcr TCR_ss// Related to TCR TCR_ss
+           TAU_1 TAU_2 TAU_3 TAU_4 Uss SIG_eps_UBar SIG_eps_gUBar SIG_eps_u //Related to unemployment
+;
+
+// ==================================================
+// CALIBRATION: Posterior mode in BCCh paper 2015
+// ==================================================
+// Related to output
+THETA=0.2; 
+Gss=4; 
+PHI=0.76;
+SIG_eps_YBar =0.01;
+SIG_eps_G=0.01; 
+SIG_eps_y=0.01;  
+TCR_ss =0;
+// Related to inflation 
+BETTA=0.995; 
+LAMBDA=0.13; 
+KAPPA=0.044; 
+GAMMA=0.017; 
+SIG_eps_ppi=0.01;  
+ppiss=3;
+phi_ppi_bar = 0.1;
+SIG_eps_ppi_bar = 0.01;
+
+
+// Related to TCR           
+TAU_5=0.645 ;
+SIG_eps_tcr=0.01; 
+
+//Related to unemployment
+TAU_1=0.5; 
+TAU_2=0.027; 
+TAU_3=1; 
+TAU_4=1; 
+Uss=8; 
+SIG_eps_u=0.01;  
+SIG_eps_UBar=0.01;  
+SIG_eps_gUBar=0.01;  
+
+// ==================================================
+// MODEL
+// ==================================================
+
+//Generacion de modelo (Se especifica que será un modelo no lineal)
+model(linear);
+
+// Ecuacion 1 
+// Crecmiento observado del PBI
+
+gY_obs = gYBar +y - y(-1);// _observed GDP growth
+
+
+// Ecuacion 2 
+// Nivel de producto potencial
+gYBar = G + SIG_eps_YBar*eps_YBar;
+
+
+// Ecuacion 3
+// Crecimiento del producto potencial
+G = THETA*Gss/4 + (1-THETA)*G(-1) + SIG_eps_G*eps_G;
+
+
+
+//Ecuacion 4
+// Brecha de producto
+ 
+y = PHI*y(-1) + SIG_eps_y*eps_y; // output gap
+
+// Ecuacion 5
+// Curva de philips
+ppi=LAMBDA/(1+BETTA*LAMBDA)*ppi(-1) + BETTA/(1+BETTA*LAMBDA)*ppi(+1) + KAPPA*y + GAMMA*tcr + SIG_eps_ppi*eps_ppi; // Inflation
+
+// Ecuacion 6
+// Inflacion observada
+
+ppi_obs = ppi + ppiss/4 + ppi_bar;
+
+// Ecuacion 7
+// Tipo de cambio real
+
+tcr=TAU_5*tcr(-1) + SIG_eps_tcr*eps_tcr; //TCR
+
+// Ecuacion 8 
+// Tipo de cambio real observado
+tcr_obs = tcr +TCR_ss;
+
+// Ecuacion 9
+// Desempleo observado
+
+U_obs = u + UBar; 
+
+// Ecuacion 10
+// Brecha de desempleio
+u = -TAU_1*y + TAU_2*u(-1) + SIG_eps_u*eps_u;
+
+// Ecuacion 11
+// Nivel de desempleo potencial
+
+
+
+UBar = TAU_4*Uss + (1-TAU_4)*UBar(-1) + gUBar + SIG_eps_UBar*eps_UBar; // Natural unemployment level
+
+//Ecuacion 12
+// Crecimiento del desempleo potencial
+
+gUBar = (1-TAU_3)*gUBar(-1) + SIG_eps_gUBar*eps_gUBar ;   // Natural unemployment growth
+
+// Ecuacion 13 
+
+ppi_bar = phi_ppi_bar*ppi_bar(-1) + SIG_eps_ppi_bar*eps_ppi_bar;
+
+
+end;
+
+// ==================================================
+// STEADY STATE
+// ==================================================
+steady_state_model;
+
+
+//Ecuaciones de estado estático
+
+
+//  Ecuacion 3 Crecimineto del producto potencial
+G = Gss/4;
+
+// Ecuacion 1 - Crecimiento PBI observado
+
+gY_obs = G;
+
+// Ecuacion 2- Nivel de prodcuto potencial
+
+gYBar = G;
+
+
+
+
+
+
+// Ecuacion 4 Brecha
+
+y = 0;
+
+
+//Ecuacion 5 Curva de Philips
+ppi=0;
+
+// Ecuacion 6 Inflación observada
+
+ppi_obs =ppiss/4;
+
+// Ecuacion 7 .- Tipo de cambio real
+tcr=0;
+
+// Ecuacion 8 Tipo de cambio real observado 
+tcr_obs=TCR_ss;
+
+// Ecuacion 11 Nivel de desemplo potencial 
+UBar = Uss ;
+// Ecuacion 9 Desempleo observado
+U_obs = UBar;
+
+
+// Ecuacion 10 Brecha de desempleo
+u=0;
+
+
+
+// Ecuacion 12 Crecimiento del desempleo potneical
+gUBar = 0;
+
+
+// Ecuacion 13
+ppi_bar = 0;
+
+end;
+
+steady;
+check;
+
+
+// ==================================================
+// CALIBRATED SHOCK SCALES
+// ==================================================
+shocks;
+var eps_YBar =1;
+var eps_G =1;
+var eps_y =1;
+var eps_ppi =1;
+var eps_tcr =1;
+var eps_u =1;
+var eps_UBar =1;
+var eps_gUBar =1;
+var eps_ppi_bar =1;
+end;
+
+
+
+// ==================================================
+// DECLARATION OF OBSERVABLE VARIABLES
+// ==================================================
+varobs ppi_obs	gY_obs	tcr_obs	U_obs;
+
+// ==================================================
+// PRIORS
+// ==================================================
+estimated_params;
+
+// Uso los parámetos del ejercicios PRIORS CHILE
+// 
+
+
+// Related to GDP
+THETA        ,  ,  ,  , beta_pdf, 0.15 , 0.1 ,  ,  ;
+Gss          , ,  0,  , normal_pdf, 4.2 , 2.1 ,   ,  ;
+PHI          ,  ,  ,  , beta_pdf, 0.6 , 0.1 ,  ,  ;
+SIG_eps_YBar ,  , 0,  , normal_pdf, 0.3 , 0.3 ,  ,  ;
+SIG_eps_G    ,  , 0,  , normal_pdf, 0.3 , 0.3 ,  ,  ;
+SIG_eps_y    ,  , 0,  , normal_pdf, 0.3 , 0.3 ,  ,  ;
+
+// Related to inflation  
+// BETTA is calibrated
+LAMBDA       ,  ,  ,  , beta_pdf, 0.25 , 0.1 ,  ,  ;
+KAPPA        ,  , 0,  , normal_pdf, 0.15  , 0.05 ,  ,  ;
+GAMMA        ,  , 0,  , normal_pdf, 0.075 , 0.025 ,  ,  ;
+SIG_eps_ppi  ,  , 0,  , normal_pdf, 0.3 , 0.3 ,  ,  ;
+// ppiss is calibrated
+
+// Related to TCR 
+// TAU_5       , ,  0,  1, uniform_pdf,  ,  ,  ,  ;
+TAU_5       , ,  0,  1, uniform_pdf, 0.5, sqrt(1/12) ,  ,  ; 
+ 
+SIG_eps_tcr ,  , 0,  , normal_pdf,  7.6, 3 ,  ,  ;
+TCR_ss      ,  ,  ,  , normal_pdf,  450, 200, , ;
+//Related to unemployment 
+TAU_1         ,  , 0,  , normal_pdf, 0.2 , 0.2 ,  ,  ;
+TAU_2         ,  ,  ,  , beta_pdf, 0.5 , 0.25 ,  ,  ;
+TAU_3         ,  ,  ,  , beta_pdf, 0.5 , 0.25 ,  ,  ;
+TAU_4         ,  ,  ,  , beta_pdf, 0.5 , 0.25 ,  ,  ;
+Uss           ,  ,  ,  , normal_pdf, 7.7 , 3.6 ,  ,   ;
+SIG_eps_u     ,  , 0,  , normal_pdf, 0.1 , 0.2 ,  ,  ;
+SIG_eps_UBar  ,  , 0,  , normal_pdf, 0.1 , 0.2 ,  ,  ;
+SIG_eps_gUBar ,  , 0,  , normal_pdf, 0.1 , 0.2 ,  ,  ;
+SIG_eps_ppi_bar , , 0, , normal_pdf, 0.5 ,   1,   ,  ;
+phi_ppi_bar   , ,  0,  1, uniform_pdf, 0.5, sqrt(1/12) ,  ,  ; 
+end;	
