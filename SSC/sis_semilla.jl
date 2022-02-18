@@ -46,7 +46,7 @@ suma_restringidos = zeros(nsteps,nave);
 for c = 1:length(p)
   prob = p[c];
   
-  for k = 1:length(betas)
+  Threads.@threads for k = 1:length(betas)
    
     beta_i = betas[k];
     print(beta_i)

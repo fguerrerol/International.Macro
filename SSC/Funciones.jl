@@ -1,5 +1,5 @@
 function adj_rand(N,z)
-adj_1  = zeros(N,N);
+adj_1  = falses(N,N);
 nlinks = N*z/2;
 
 while nlinks>0
@@ -21,7 +21,8 @@ return adj_1,nlinks
 end
 
 
-function Util(U,adj_copy)
+function Util(U::BitArray,
+            adj_copy::BitMatrix)
     AgUtil = 0;
     healthy=0;
     unhealthy=0;
@@ -41,20 +42,22 @@ end
 
 
 
-function Decission(adj,U,Restricted,p,r,z,N,beta,cap_t,links_0)
-    pre_result = zeros(1,length(U));
-    U_noised = zeros(1,length(U));
+function Decission(adj::BitMatrix,
+                    U::BitMatrix,
+                    Restricted::BitMatrix,
+                    p,r,z,N,beta,cap_t,links_0,sel)
+    pre_result = zeros(1,N);
+    U_noised = falses(1,N);
     U_noised .= scramble(U);
 
-    sel = collect(1:N)
     #shuffle!(sel)
     #sel = sel[1:trunc(Int64,cap_t*N)]
-    adj_temp = zeros(N,N);
+    adj_temp = falses(N,N);
     adj_temp .= adj;
     links_no_corta = flinks(adj);
     contagios_no_corta = (sum(U.*-(Restricted .-1)))*(1+p*z-r);
     Loss_no_corta = Loss(links_0, links_no_corta, beta, contagios_no_corta);
-    Threads.@threads  for i = 1:length(sel)
+    for i = 1:length(sel)
         if Restricted[sel[i]] != 1
             if U_noised[sel[i]] != 0
                 adj_temp[sel[i],:].=0;
@@ -63,8 +66,8 @@ function Decission(adj,U,Restricted,p,r,z,N,beta,cap_t,links_0)
                 contagios_corta = (sum(U.*-(Restricted .-1)))*(1+p*z-r)-1-p*sum(adj[sel[i],:]);
                 Loss_corta = Loss(links_0, links_corta, beta, contagios_corta);
                 pre_result[sel[i]] = Loss_no_corta - Loss_corta;
-                adj_temp[sel[i],:].=adj[sel[i],:];
-                adj_temp[:,sel[i]].=adj[:,sel[i]];
+                adj_temp[sel[i],:]=adj[sel[i],:];
+                adj_temp[:,sel[i]]=adj[:,sel[i]];
             end
         end
     end
@@ -88,13 +91,13 @@ function  sis_net_limit(N ::Int64, z::Number, nsteps::Int64, p0, r0, beta_i,test
     
     cap_t = test_cap;
     
-    adj_0 = zeros(N,N)
-    adj_m = zeros(N,N)
+    adj_0 = falses(N,N)
+    adj_m = falses(N,N)
     adj_m,links_0 = adj_rand(N,z);
     adj_0 .= adj_m;
     flip    = rand(1:N,1,1)[1];
-    U       = zeros(1,N);
-    Restricted = copy(zeros(1,N));
+    U       = falses(1,N);
+    Restricted = falses(1,N);
 
     
     U[flip] = 1;
@@ -106,12 +109,13 @@ function  sis_net_limit(N ::Int64, z::Number, nsteps::Int64, p0, r0, beta_i,test
     links_0 = N*z/2;
     local step_t = nsteps
     flag::Bool=false;
+    sel = collect(1:N)
     for step_l in 1:step_t
         flag = step_l < 0.2*step_t ? false : true;
         
         tseries[step_l,:] = [step_l,sum(U)/N,sum(Restricted)/N,sum(U.* - (Restricted .-1))/N,flinks(adj_m)/links_0];
 
-        adj_m,U,Restricted = infect_async(adj_m,U,Restricted,flag,N,p0,r0,z,beta,cap_t,links_0,adj_0);
+        adj_m,U,Restricted = infect_async(adj_m,U,Restricted,flag,N,p0,r0,z,beta,cap_t,links_0,adj_0,sel);
 
     end
     
@@ -146,7 +150,7 @@ end
 
 function scramble(U)
     error = 1;
-    U_noised = zeros(1,length(U));
+    U_noised = falses(1,length(U));
     
     for i= 1:length(U)
         if U[i]==1
@@ -181,7 +185,10 @@ end
 
 
 
-function Reconnect(adj,U,Restricted,adj_0)
+function Reconnect(adj::BitMatrix,
+                    U::BitMatrix,
+                    Restricted::BitMatrix,
+                    adj_0::BitMatrix)
     #global adj,Restricted,adj_0
     
     for i = 1:length(U)
@@ -205,7 +212,10 @@ end
 
 
 
-function infect_async(adj,U,Restricted,flag_0,N,p,r,z,beta,cap_t,links_0,adj_0)
+function infect_async(adj::BitMatrix,
+                    U::BitArray,
+                    Restricted::BitArray,
+                    flag_0,N,p,r,z,beta,cap_t,links_0,adj_0,sel)
     #global adj,Restricted
     
     sele =  rand(1:N,1,N);
@@ -213,11 +223,11 @@ function infect_async(adj,U,Restricted,flag_0,N,p,r,z,beta,cap_t,links_0,adj_0)
     
     if flag_0 
         adj,Restricted = Reconnect(adj,U,Restricted,adj_0);
-        result = Decission(adj,U,Restricted,p,r,z,N,beta,cap_t,links_0);   
+        result = Decission(adj,U,Restricted,p,r,z,N,beta,cap_t,links_0,sel);   
         adj,Restricted =recollect(adj,Restricted,result,trunc(Int64,N/10),U);    
     end
  
-    for i = 1:length(sele)
+    for i = 1:N
        x_0   = sele[i];
        
        if U[x_0] == 0     

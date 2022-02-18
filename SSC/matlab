@@ -305,7 +305,7 @@ plot_shock_decomposition(steadystate, type = qoq) ppi_obs gY_obs gYBar;
 
 stoch_simul(periods = 0, irf = 20, order = 1, nograph); 
 
-save MVF_arg.mat oo_ M_ options_;
+save MVF_arg_2.mat oo_ M_ options_;
 
 
 
